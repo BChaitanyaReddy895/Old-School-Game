@@ -1,12 +1,11 @@
 "use client";
 
-import {useState, useEffect} from 'react';
+import {useState, useEffect, useRef} from 'react';
 import {CopyToClipboard} from 'react-copy-to-clipboard';
-import io from 'socket.io-client';
 import styles from "./page.module.css";
 
-// https://oldschoolgame.vercel.app use in production
-const socket = io(process.env.NEXT_PUBLIC_SOCKET_URL || 'http://localhost:3001');
+// TODO: Implement HTTP polling logic for multiplayer game state
+// TODO: Use fetch to poll /api/game-state and POST to /api/move
 
 const Game = () => {
 
@@ -22,6 +21,16 @@ const Game = () => {
     const [optionSelected, setOptionSelected] = useState(false);
     const [optionNewGame, setOptionNewGame] = useState(false);
     const [gameStarted, setGameStarted] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const [gameActive, setGameActive] = useState(false);
+    const [waitingForOpponent, setWaitingForOpponent] = useState(false);
+
+    const [playerId, setPlayerId] = useState(() =>
+      typeof window !== 'undefined' ? localStorage.getItem('ttt_playerId') : ''
+    );
+
+    const pollingInterval = 1000; // 1 second
+    const pollingRef = useRef(null);
 
     useEffect(() => {
         let statusTimer;
@@ -36,51 +45,46 @@ const Game = () => {
     }, [status]);
 
     useEffect(() => {
-        socket.on('move', ({gameNumber, index, symbol}) => {
-            console.log(`Game Number: ${gameNumber}`);
-            setBoard(prevBoard => {
-                const newBoard = [...prevBoard];
-                newBoard[index] = symbol;
-                setIsXNext(symbol !== 'X');
-                return newBoard;
-            });
-        });
-
-        socket.on('gameCreated', ({gameNumber}) => {
-            setCurrentGame(gameNumber);
-            setStatus(`Game created. Your game number is ${gameNumber}`);
-        });
-
-        socket.on('gameJoined', ({gameNumber}) => {
-            setCurrentGame(gameNumber);
-            setStatus(`Joined game ${gameNumber}`);
-        });
-
-        socket.on('userJoined', ({userId}) => {
-            setHasStarted(true);
-            setStatus(`User ${userId} joined the game`);
-            setGameStarted(true);
-        });
-
-        socket.on('resetGame', () => {
-            reset(false);
-        });
-
-        socket.on('error', (error) => {
-            setStatus(`Error: ${error}`);
-        });
+        // REMOVE: All socket.on and socket.emit logic in useEffect and handlers
+        // TODO: Implement HTTP polling logic for multiplayer game state
+        // TODO: Use fetch to poll /api/game-state and POST to /api/move
 
         return () => {
-            socket.off('move');
-            socket.off('gameCreated');
-            socket.off('gameJoined');
-            socket.off('userJoined');
-            socket.off('resetGame');
-            socket.off('error');
+            // REMOVE: All socket.off('move');
+            // REMOVE: All socket.off('gameCreated');
+            // REMOVE: All socket.off('gameJoined');
+            // REMOVE: All socket.off('userJoined');
+            // REMOVE: All socket.off('resetGame');
+            // REMOVE: All socket.off('error');
         };
     }, []);
 
-    const handleClick = (index) => {
+    useEffect(() => {
+        if (!currentGame || !gameStarted || !gameActive || !playerId) return;
+        let isMounted = true;
+        async function pollGameState() {
+            try {
+                const res = await fetch(`/api/game-state?gameNumber=${currentGame}&playerId=${playerId}`);
+                if (!res.ok) throw new Error('Failed to fetch game state');
+                const data = await res.json();
+                if (!isMounted) return;
+                setBoard(data.board);
+                setIsXNext(data.isXNext);
+                setHasStarted(data.hasStarted);
+                setMySymbol(data.symbol || mySymbol);
+                setGameActive(!data.winner && !data.tie);
+            } catch (err) {
+                setStatus('Polling error: ' + err.message);
+            }
+        }
+        pollingRef.current = setInterval(pollGameState, pollingInterval);
+        return () => {
+            isMounted = false;
+            clearInterval(pollingRef.current);
+        };
+    }, [currentGame, gameStarted, gameActive, playerId]);
+
+    const handleClick = async (index) => {
         if (!currentGame) {
             setStatus('Create or join a game first!');
             return;
@@ -103,27 +107,106 @@ const Game = () => {
 
         const symbol = isXNext ? 'X' : 'O';
 
-        socket.emit('move', {gameNumber: currentGame, index, symbol});
-    };
-
-
-    const reset = (isUserInitiated = true) => {
-        setBoard(Array(9).fill(null));
-        setIsXNext(true);
-        if (isUserInitiated) {
-            socket.emit('resetGame', currentGame);
+        // Optimistic UI update
+        setBoard(prev => {
+            const newBoard = [...prev];
+            newBoard[index] = symbol;
+            return newBoard;
+        });
+        setIsXNext(!isXNext);
+        setGameActive(false); // Pause polling until move is confirmed
+        try {
+            setLoading(true);
+            const res = await fetch('/api/move', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ gameNumber: currentGame, index, symbol })
+            });
+            if (!res.ok) throw new Error('Move failed');
+            setGameActive(true); // Resume polling
+        } catch (err) {
+            setStatus('Move error: ' + err.message);
+        } finally {
+            setLoading(false);
         }
     };
 
-    const handleCreateGame = () => {
-        setMySymbol('X');
-        socket.emit('createGame');
+
+    const reset = async (isUserInitiated = true) => {
+        setBoard(Array(9).fill(null));
+        setIsXNext(true);
+        setGameActive(true);
+        setWaitingForOpponent(false);
+        if (isUserInitiated) {
+            try {
+                setLoading(true);
+                const res = await fetch('/api/reset', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ gameNumber: currentGame, playerId })
+                });
+                const data = await res.json();
+                if (data.status === 'waiting') {
+                    setWaitingForOpponent(true);
+                    setStatus('Waiting for opponent to play again...');
+                } else if (data.status === 'reset') {
+                    setWaitingForOpponent(false);
+                    setStatus('Game reset!');
+                }
+            } catch (err) {
+                setStatus('Reset error: ' + err.message);
+            } finally {
+                setLoading(false);
+            }
+        }
     };
 
-    const handleJoinGame = () => {
+    const handleCreateGame = async () => {
+        setLoading(true);
+        try {
+            const res = await fetch('/api/create-game', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+            });
+            if (!res.ok) throw new Error('Create game failed');
+            const data = await res.json();
+            setCurrentGame(data.gameNumber);
+            setPlayerId(data.playerId);
+            localStorage.setItem('ttt_playerId', data.playerId);
+            setMySymbol(data.symbol);
+            setStatus(`Game created. Your game number is ${data.gameNumber}`);
+            setGameStarted(true);
+            setGameActive(true);
+        } catch (err) {
+            setStatus('Create game error: ' + err.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleJoinGame = async () => {
         if (!gameNumber) return;
-        setMySymbol('O');
-        socket.emit('joinGame', gameNumber);
+        setLoading(true);
+        try {
+            const res = await fetch('/api/join-game', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ gameNumber })
+            });
+            if (!res.ok) throw new Error('Join game failed');
+            const data = await res.json();
+            setCurrentGame(gameNumber);
+            setPlayerId(data.playerId);
+            localStorage.setItem('ttt_playerId', data.playerId);
+            setMySymbol(data.symbol);
+            setStatus(`Joined game ${gameNumber}`);
+            setGameStarted(true);
+            setGameActive(true);
+        } catch (err) {
+            setStatus('Join game error: ' + err.message);
+        } finally {
+            setLoading(false);
+        }
     };
 
     const winner = calculateWinner(board);
@@ -174,10 +257,8 @@ const Game = () => {
                                     handleCreateGame();
                                     setOptionNewGame(true);
                                     setOptionSelected(true);
-                                }}>Create Game
-                                </button>
-                                <button className={styles.copyButton} onClick={() => setOptionSelected(true)}>Join Game
-                                </button>
+                                }} disabled={loading}>Create Game</button>
+                                <button className={styles.copyButton} onClick={() => setOptionSelected(true)} disabled={loading}>Join Game</button>
                             </div>
                             <p className={styles.shareText}>Game On! Create New or Join Existing</p>
                         </div>
@@ -207,6 +288,18 @@ const Game = () => {
                     </button>
                 ))}
             </div>
+
+            {(winner || isBoardFull) && (
+  <div style={{ marginTop: 20 }}>
+    <button
+      className={styles.copyButton}
+      onClick={() => reset(true)}
+      disabled={loading || waitingForOpponent}
+    >
+      {waitingForOpponent ? 'Waiting for opponent...' : 'Play Again'}
+    </button>
+  </div>
+)}
 
 
             {/* Show reset button and result message if the game is over */}
