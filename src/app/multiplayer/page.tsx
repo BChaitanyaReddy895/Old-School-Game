@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import styles from "./page.module.css";
 import TicTacToeImage from "/public/tic-tac-toe.svg";
 
@@ -15,7 +16,7 @@ const MultiplayerSelection = () => {
             <div className={styles.selectionContainer}>
                 <div className={styles.gameHeader}>
                     <div className={styles.gameIcon}>
-                        <img src={TicTacToeImage.src} alt="Tic Tac Toe" width="80" height="70" />
+                        <Image src={TicTacToeImage} alt="Tic Tac Toe" width={80} height={70} />
                     </div>
                     <h1>Multiplayer Games</h1>
                     <p>Choose your multiplayer game</p>

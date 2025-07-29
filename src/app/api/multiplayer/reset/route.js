@@ -1,4 +1,4 @@
-import { games } from '../game-state/route';
+import { games } from '../shared/games.js';
 
 export async function POST(req) {
   try {
@@ -6,7 +6,7 @@ export async function POST(req) {
     const { gameNumber, playerId } = body;
     
     // Proper validation
-    if (!gameNumber || gameNumber === '' || !games.hasOwnProperty(gameNumber)) {
+    if (!gameNumber || gameNumber === '' || !Object.prototype.hasOwnProperty.call(games, gameNumber)) {
       return new Response(JSON.stringify({ error: 'Game not found' }), { 
         status: 404,
         headers: { 'Content-Type': 'application/json' }

@@ -1,4 +1,4 @@
-import { games } from '../game-state/route';
+import { games } from '../shared/games.js';
 import { randomUUID } from 'crypto';
 
 function generateUniqueGameNumber() {
@@ -11,13 +11,13 @@ function generatePlayerId() {
   return randomUUID();
 }
 
-export async function POST(req) {
+export async function POST() {
   try {
     const playerId = generatePlayerId();
     let gameNumber = generateUniqueGameNumber();
     
     // Ensure gameNumber is unique
-    while (games.hasOwnProperty(gameNumber)) {
+    while (Object.prototype.hasOwnProperty.call(games, gameNumber)) {
       gameNumber = generateUniqueGameNumber();
     }
     

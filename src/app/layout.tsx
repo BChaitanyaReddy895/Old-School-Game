@@ -45,7 +45,7 @@ export default function RootLayout( {
   children: React.ReactNode;
 }> ) {
 
-  console.log("Reloaded Layout Page...")
+  
 
     return (
     <html lang="en">

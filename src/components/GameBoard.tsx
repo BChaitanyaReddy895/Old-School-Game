@@ -80,7 +80,7 @@ export default function GameBoard({ playerSymbol }: GameBoardProps) {
                         .filter((index): index is number => index !== null);
                     
                     if (availableMoves.length > 0) {
-                        const fallbackMove = availableMoves[0];
+                        const fallbackMove = availableMoves[Math.floor(Math.random() * availableMoves.length)];
                         updatedBoard[fallbackMove] = computerSymbol;
                         setBoard(updatedBoard);
                         setGameStatus("It's Your Turn (Fallback move)");
@@ -186,7 +186,7 @@ export default function GameBoard({ playerSymbol }: GameBoardProps) {
 
                 <div>
                     <h3>Error Handling</h3>
-                    <p>The AI includes robust error handling to ensure the game continues even if the algorithm encounters unexpected situations:</p>
+                    <p>Even the most sophisticated AI algorithms can encounter unexpected situations. The AI includes comprehensive error handling to ensure a smooth gaming experience:</p>
                     <ul className={styles.ulContainer}>
                         <li>Input validation prevents invalid board states</li>
                         <li>Fallback moves ensure the game never gets stuck</li>

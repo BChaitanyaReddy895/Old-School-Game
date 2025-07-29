@@ -2,6 +2,7 @@
 
 import {useState, useEffect, useRef, useCallback} from 'react';
 import {CopyToClipboard} from 'react-copy-to-clipboard';
+import { calculateWinner } from '../../../utils/gameLogic.js';
 import styles from "./page.module.css";
 
 const Game = () => {
@@ -18,7 +19,7 @@ const Game = () => {
     const [loading, setLoading] = useState(false);
     const [gameActive, setGameActive] = useState(false);
     const [waitingForOpponent, setWaitingForOpponent] = useState(false);
-    const [lastMoveTime, setLastMoveTime] = useState(0);
+
 
     const [playerId, setPlayerId] = useState(() =>
       typeof window !== 'undefined' ? localStorage.getItem('ttt_playerId') : ''
@@ -72,14 +73,13 @@ const Game = () => {
             setMySymbol(data.symbol || mySymbol);
             setGameActive(!data.winner && !data.tie);
             
-            // Update last move time to track activity
-            setLastMoveTime(Date.now());
+
         } catch (err) {
             setStatus('Polling error: ' + err.message);
             // Resume polling after error
             setGameActive(true);
         }
-    }, [currentGame, gameStarted, playerId]);
+    }, [currentGame, gameStarted, playerId, mySymbol]);
 
     // Start/stop polling based on game state
     useEffect(() => {
@@ -139,7 +139,7 @@ const Game = () => {
             const res = await fetch('/api/multiplayer/move', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ gameNumber: currentGame, index, symbol })
+                body: JSON.stringify({ gameNumber: currentGame, index, symbol, playerId: myPlayerId })
             });
             
             if (!res.ok) {
@@ -308,7 +308,7 @@ const Game = () => {
                                 <div className={styles.urlWrapper}>
                                     <p className={styles.urlText}>{currentGame === null ? 'Refresh the Page' : currentGame}</p>
                                     <CopyToClipboard text={currentGame} onCopy={() => setStatus('Game number copied!')}>
-                                        <button className={styles.copyButton}>Copy Code</button>
+                                        <button type="button" className={styles.copyButton}>Copy Code</button>
                                     </CopyToClipboard>
                                 </div>
                                 <p className={styles.shareText}>{status}</p>
@@ -325,6 +325,7 @@ const Game = () => {
                                         onKeyPress={(e) => e.key === 'Enter' && handleJoinGame()}
                                     />
                                     <button 
+                                        type="button"
                                         className={styles.copyButton} 
                                         onClick={() => {
                                             handleJoinGame();
@@ -342,6 +343,7 @@ const Game = () => {
                         <div>
                             <div className={styles.urlWrapperButton}>
                                 <button 
+                                    type="button"
                                     className={styles.copyButton} 
                                     onClick={() => {
                                         handleCreateGame();
@@ -353,6 +355,7 @@ const Game = () => {
                                     Create Game
                                 </button>
                                 <button 
+                                    type="button"
                                     className={styles.copyButton} 
                                     onClick={() => setOptionSelected(true)} 
                                     disabled={loading}
@@ -380,6 +383,7 @@ const Game = () => {
             <div className={styles.gridContainer}>
                 {board.map((cell, index) => (
                     <button 
+                        type="button"
                         key={index} 
                         className={styles.gridButton} 
                         onClick={() => handleClick(index)}
@@ -393,6 +397,7 @@ const Game = () => {
             {(winner || isBoardFull) && (
                 <div style={{ marginTop: 20 }}>
                     <button
+                        type="button"
                         className={styles.copyButton}
                         onClick={() => reset(true)}
                         disabled={loading || waitingForOpponent}
@@ -442,14 +447,14 @@ const Game = () => {
 
                 <div>
                     <h3>Mutual Play Again System</h3>
-                    <p>After a game ends, both players must click "Play Again" to start a new round. If only one player clicks, they see "Waiting for opponent to play again..." until both agree.</p>
+                    <p>After a game ends, both players must click &quot;Play Again&quot; to start a new round. If only one player clicks, they see &quot;Waiting for opponent to play again...&quot; until both agree.</p>
                 </div>
 
                 <div>
                     <h3>Error Handling</h3>
                     <p>The game handles network errors gracefully:</p>
                     <ul className={styles.ulContainer}>
-                        <li>If a move fails, it's automatically reverted</li>
+                        <li>If a move fails, it&apos;s automatically reverted</li>
                         <li>Polling resumes after connection errors</li>
                         <li>Clear error messages help you understand what went wrong</li>
                         <li>Game state is preserved during temporary disconnections</li>
@@ -470,27 +475,6 @@ const Game = () => {
             </div>
         </>
     );
-};
-
-const calculateWinner = (board) => {
-    const lines = [
-        [0, 1, 2],
-        [3, 4, 5],
-        [6, 7, 8],
-        [0, 3, 6],
-        [1, 4, 7],
-        [2, 5, 8],
-        [0, 4, 8],
-        [2, 4, 6],
-    ];
-
-    for (let line of lines) {
-        const [a, b, c] = line;
-        if (board[a] && board[a] === board[b] && board[a] === board[c]) {
-            return board[a];
-        }
-    }
-    return null;
 };
 
 export default Game; 

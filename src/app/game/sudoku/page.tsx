@@ -5,7 +5,7 @@ import styles from "./page.module.css";
 import { generateFullSudoku, removeNumbers } from "@/app/game/sudoku/Sudoku";
 
 export default function Home() {
-    console.log("Rerender page....");
+
 
     const [sudoku, setSudoku] = useState<number[][]>([]);
     const [initialSudoku, setInitialSudoku] = useState<number[][]>([]);
@@ -43,7 +43,7 @@ export default function Home() {
     }, []);
 
     const checkSolution = useCallback(() => {
-        console.log(sudokuAns);
+
 
         if (!sudokuAns || sudokuAns.length === 0) {
             console.error("Sudoku solution is not initialized yet!");

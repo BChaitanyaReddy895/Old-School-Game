@@ -1,29 +1,25 @@
-import { games } from '../game-state/route';
-
-function calculateWinner(board) {
-  const lines = [
-    [0, 1, 2], [3, 4, 5], [6, 7, 8],
-    [0, 3, 6], [1, 4, 7], [2, 5, 8],
-    [0, 4, 8], [2, 4, 6],
-  ];
-  for (let line of lines) {
-    const [a, b, c] = line;
-    if (board[a] && board[a] === board[b] && board[a] === board[c]) {
-      return board[a];
-    }
-  }
-  return null;
-}
+import { games } from '../shared/games.js';
+import { calculateWinner, isBoardFull } from '../../../../utils/gameLogic.js';
 
 export async function POST(req) {
   try {
     const body = await req.json();
-    const { gameNumber, index, symbol } = body;
+    const { gameNumber, index, symbol, playerId } = body;
     
     // Input validation
-    if (!gameNumber || gameNumber === '' || !games.hasOwnProperty(gameNumber)) {
+    if (!gameNumber || gameNumber === '' || !Object.prototype.hasOwnProperty.call(games, gameNumber)) {
       return new Response(JSON.stringify({ error: 'Game not found' }), { 
         status: 404,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+    
+    const game = games[gameNumber];
+    
+    // Security check: Verify player is part of the game
+    if (!playerId || !game.players || !game.players.some(p => p.id === playerId)) {
+      return new Response(JSON.stringify({ error: 'Unauthorized: Player not part of this game' }), { 
+        status: 403,
         headers: { 'Content-Type': 'application/json' }
       });
     }
@@ -43,8 +39,6 @@ export async function POST(req) {
         headers: { 'Content-Type': 'application/json' }
       });
     }
-    
-    const game = games[gameNumber];
     
     // Check if game has ended
     if (game.winner || game.tie) {
@@ -78,7 +72,7 @@ export async function POST(req) {
     // Check for winner or tie
     const winner = calculateWinner(game.board);
     game.winner = winner;
-    game.tie = !winner && game.board.every(cell => cell !== null);
+    game.tie = !winner && isBoardFull(game.board);
     
     return new Response(JSON.stringify({ 
       success: true,
