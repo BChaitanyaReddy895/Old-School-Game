@@ -4,26 +4,21 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "concurrently \"next dev\" \"npm run websocket:dev\"",
-    "websocket:dev": "node src/app/server/server.js",
+    "dev": "next dev",
     "build": "next build",
-    "start": "concurrently \"next start\" \"node src/app/server/server.js\"",
+    "start": "next start",
     "lint": "next lint"
   },
   "dependencies": {
     "next": "14.2.8",
     "react": "^18",
     "react-copy-to-clipboard": "^5.1.0",
-    "react-dom": "^18",
-    "socket.io": "^4.7.5",
-    "socket.io-client": "^4.7.5",
-    "concurrently": "^8.2.2"
+    "react-dom": "^18"
   },
   "devDependencies": {
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
-    "concurrently": "^8.2.2",
     "eslint": "^8",
     "eslint-config-next": "14.2.8",
     "typescript": "^5"

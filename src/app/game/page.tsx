@@ -17,8 +17,7 @@ const SelectGame = () => {
             </div>
 
             <div className={styles.cardContainer}>
-                <Card image={TicTacToeImage} name={"Tic Tac Toe"} link={"tic-tac-toe/single-player"} backgroundColor={"#FF3737"} textColor={"white"}/>
-                <Card image={TicTacToeImage} name={"Tic Tac Toe (Multiplayer)"} link={"tic-tac-toe/multi-player"} backgroundColor={"#22C55E"} textColor={"black"}/>
+                <Card image={TicTacToeImage} name={"Tic Tac Toe"} link={"tic-tac-toe"} backgroundColor={"#FF3737"} textColor={"white"}/>
                 <Card image={SudokuImage} name={"sudoku"} link={"sudoku"} backgroundColor={"#22C55E"} />
             </div>
         </>

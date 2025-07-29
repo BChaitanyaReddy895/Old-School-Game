@@ -13,12 +13,11 @@ export default function GameBoard({ playerSymbol }: GameBoardProps) {
     const [board, setBoard] = useState<(null | "X" | "O")[]>(initialBoard); // State to keep track of the current board state
     const [currentTurn, setCurrentTurn] = useState<"X" | "O">(playerSymbol); // State to keep track of whose turn it is ("X" or "O")
     const [gameStatus, setGameStatus] = useState<string>("Start playing your game"); // State to display the game status (e.g., instructions or result)
+    const [isComputerThinking, setIsComputerThinking] = useState<boolean>(false); // State to show when computer is thinking
     const computerSymbol = playerSymbol === "X" ? "O" : "X"; // Determine the computer's symbol based on the player's symbol
-
 
     // Function to check if there is a winner on the board
     const checkWin = (board: (null | "X" | "O")[]) => {
-
         // Define the winning patterns for rows, columns, and diagonals
         const winPatterns = [
             [0, 1, 2], [3, 4, 5], [6, 7, 8],  // Rows
@@ -32,7 +31,6 @@ export default function GameBoard({ playerSymbol }: GameBoardProps) {
 
             // If all three cells in the pattern are the same and not null, return the symbol
             if (board[a] && board[a] === board[b] && board[a] === board[c]) {
-                console.log(board[a]);
                 return board[a];
             }
         }
@@ -47,7 +45,7 @@ export default function GameBoard({ playerSymbol }: GameBoardProps) {
     // Function to handle a click on a board cell
     const handleClick = (index: number) => {
         // Do nothing if the cell is already filled, it's the computer's turn, or the game is already won
-        if (board[index] || currentTurn === computerSymbol || checkWin(board)) return;
+        if (board[index] || currentTurn === computerSymbol || checkWin(board) || isComputerThinking) return;
 
         // Create a copy of the board and update the clicked cell with the player's symbol
         const updatedBoard = board.slice();
@@ -56,6 +54,7 @@ export default function GameBoard({ playerSymbol }: GameBoardProps) {
 
         // Update the game status to indicate the computer's turn
         setGameStatus("Wait... Now it's the Computer's turn");
+        setIsComputerThinking(true);
 
         // Switch to the computer's turn
         setCurrentTurn(computerSymbol);
@@ -64,14 +63,33 @@ export default function GameBoard({ playerSymbol }: GameBoardProps) {
         setTimeout(() => {
             // If the game is not yet won or drawn, let the computer make a move
             if (!checkWin(updatedBoard) && !isDraw(updatedBoard)) {
-                // Get the best move for the computer
-                const computerMove = getBestMove(updatedBoard, computerSymbol);
-                updatedBoard[computerMove] = computerSymbol; // Update the board with the computer's move
-                setBoard(updatedBoard); // Update the board state
-                setGameStatus("It's Your Turn"); // Update the game status
+                try {
+                    // Get the best move for the computer
+                    const computerMove = getBestMove(updatedBoard, computerSymbol);
+                    updatedBoard[computerMove] = computerSymbol; // Update the board with the computer's move
+                    setBoard(updatedBoard); // Update the board state
+                    setGameStatus("It's Your Turn"); // Update the game status
+                } catch (error) {
+                    // Handle AI errors gracefully
+                    console.error('AI Error:', error);
+                    setGameStatus("Computer encountered an error. Please try again.");
+                    
+                    // Find any available move as fallback
+                    const availableMoves = updatedBoard
+                        .map((cell, index) => cell === null ? index : null)
+                        .filter((index): index is number => index !== null);
+                    
+                    if (availableMoves.length > 0) {
+                        const fallbackMove = availableMoves[0];
+                        updatedBoard[fallbackMove] = computerSymbol;
+                        setBoard(updatedBoard);
+                        setGameStatus("It's Your Turn (Fallback move)");
+                    }
+                }
             }
             // Switch back to the player's turn
             setCurrentTurn(playerSymbol);
+            setIsComputerThinking(false);
         }, 1000); // 1-second delay for the computer's move
     };
 
@@ -79,6 +97,8 @@ export default function GameBoard({ playerSymbol }: GameBoardProps) {
     const reset = () => {
         setGameStatus("It's Your Turn"); // Reset the game status
         setBoard(Array(9).fill(null)); // Clear the board
+        setCurrentTurn(playerSymbol); // Reset to player's turn
+        setIsComputerThinking(false); // Reset computer thinking state
     };
 
     // Determine if there is a winner or if the game is a draw
@@ -86,11 +106,15 @@ export default function GameBoard({ playerSymbol }: GameBoardProps) {
     const draw = isDraw(board);
 
     return (<>
-
             <div className={styles.boardContainer}>
                 {/* Display the game status */}
-                {currentTurn === computerSymbol ? (<h1 className={styles.turnStatus}>{gameStatus}</h1>) : (
-                    <h1>{gameStatus}</h1>)}
+                {currentTurn === computerSymbol ? (
+                    <h1 className={styles.turnStatus}>
+                        {isComputerThinking ? "Computer is thinking..." : gameStatus}
+                    </h1>
+                ) : (
+                    <h1>{gameStatus}</h1>
+                )}
 
                 <div className={styles.board}>
                     {/* Render each cell as a button */}
@@ -99,7 +123,7 @@ export default function GameBoard({ playerSymbol }: GameBoardProps) {
                             className={styles.gridButton}
                             key={index}
                             onClick={() => handleClick(index)}
-                            disabled={currentTurn === computerSymbol || cell !== null} // Disable button if it's the computer's turn or cell is filled
+                            disabled={currentTurn === computerSymbol || cell !== null || isComputerThinking} // Disable button if it's the computer's turn or cell is filled
                         >
                             {cell} {/* Display the cell content ("X", "O", or empty) */}
                         </button>
@@ -121,10 +145,7 @@ export default function GameBoard({ playerSymbol }: GameBoardProps) {
                 )}
             </div>
 
-
-
             <div className={styles.workingContainer}>
-
                 <div>
                     <h2>How Does the Computer Pick the Best Move?</h2>
                     <p>The computer looks at the current board state, checks every empty cell, and evaluates what would
@@ -143,8 +164,7 @@ export default function GameBoard({ playerSymbol }: GameBoardProps) {
                     <ul className={styles.ulContainer}>
                         <li>AI Wins: +10 points</li>
                         <li>Player Wins: -10 points</li>
-                        <li>Draw: 0
-                            points</li>
+                        <li>Draw: 0 points</li>
                     </ul>
                 </div>
 
@@ -164,12 +184,21 @@ export default function GameBoard({ playerSymbol }: GameBoardProps) {
                     <p>Whenever the computer detects that a move is worse than one already evaluated, it stops considering that branch of the decision tree.</p>
                 </div>
 
+                <div>
+                    <h3>Error Handling</h3>
+                    <p>The AI includes robust error handling to ensure the game continues even if the algorithm encounters unexpected situations:</p>
+                    <ul className={styles.ulContainer}>
+                        <li>Input validation prevents invalid board states</li>
+                        <li>Fallback moves ensure the game never gets stuck</li>
+                        <li>Clear error messages help users understand what happened</li>
+                        <li>Graceful degradation maintains game functionality</li>
+                    </ul>
+                </div>
+
                 <div className={styles.youtubeLinkContainer}>
                     <Link className={styles.youtubeLink} href="https://youtu.be/STjW3eH0Cik?feature=shared" target="_blank" rel="noopener noreferrer" >Learn more about it</Link>
                 </div>
-
             </div>
-
         </>
     );
 }

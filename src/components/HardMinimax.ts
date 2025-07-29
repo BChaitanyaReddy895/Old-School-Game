@@ -21,7 +21,6 @@ export const hardMinimax = (
     computerSymbol: "X" | "O" // Symbol for the computer player
 ): number => {
     const human = computerSymbol === 'X' ? 'O' : 'X';
-    console.log('Computer Symbol in Hard Minimax: ', computerSymbol);
 
     // Check if there's a winner or if the game is a tie
     const winner = checkWin(board);
@@ -44,7 +43,7 @@ export const hardMinimax = (
         let minEval = Infinity; // Initialize the best score as very high
         for (const index of emptyIndices(board)) { // Iterate over all empty cells
             board[index] = human; // Try placing the human's move at the current empty cell
-            const evalScore = hardMinimax(board, depth + 1, true, alpha, beta,computerSymbol); // Evaluate the score for this move
+            const evalScore = hardMinimax(board, depth + 1, true, alpha, beta, computerSymbol); // Evaluate the score for this move
             board[index] = null; // Undo the move
             minEval = Math.min(minEval, evalScore); // Update the best score if this move is better
             beta = Math.min(beta, evalScore); // Update beta to the minimum value found
@@ -65,6 +64,15 @@ export const getBestMove = (board: Board, computerSymbol: "X" | "O"): number => 
     let bestMove = -1; // Initialize the best move index
     let bestScore = -Infinity; // Initialize the best score as very low
 
+    // Validate input
+    if (!board || board.length !== 9) {
+        throw new Error('Invalid board state');
+    }
+
+    if (!['X', 'O'].includes(computerSymbol)) {
+        throw new Error('Invalid computer symbol');
+    }
+
     // Iterate over all empty cells to find the best move
     for (const index of emptyIndices(board)) {
         board[index] = computerSymbol; // Try placing the computer's move at the current empty cell
@@ -76,9 +84,13 @@ export const getBestMove = (board: Board, computerSymbol: "X" | "O"): number => 
         }
     }
 
+    // Validate that we found a valid move
+    if (bestMove === -1) {
+        throw new Error('No valid move found');
+    }
+
     return bestMove; // Return the index of the best move
 };
-
 
 /**
  * Helper function to find the indices of empty spots on the board.
@@ -86,16 +98,15 @@ export const getBestMove = (board: Board, computerSymbol: "X" | "O"): number => 
  * @param board - The current state of the board.
  * @returns An array of indices where the board is empty.
  */
-const emptyIndices = (board: Board) => {
-    return board.map( // Create an array of indices where the board cells are empty (null)
-        (value, index) => (
-            value === null ? index : null)
-    ).filter(
-            (val) =>
-                val !== null
-    ) as number[];
+const emptyIndices = (board: Board): number[] => {
+    if (!board || board.length !== 9) {
+        return [];
+    }
+    
+    return board
+        .map((value, index) => value === null ? index : null)
+        .filter((val): val is number => val !== null);
 };
-
 
 /**
  * The `checkWin` function checks if there is a winner on the board.
@@ -103,7 +114,11 @@ const emptyIndices = (board: Board) => {
  * @param board - The current state of the board.
  * @returns The winning player ("X" or "O") or `null` if there is no winner.
  */
-const checkWin = (board: Board) => {
+const checkWin = (board: Board): "X" | "O" | null => {
+    if (!board || board.length !== 9) {
+        return null;
+    }
+    
     const winPatterns = [
         [0, 1, 2], [3, 4, 5], [6, 7, 8],  // Rows
         [0, 3, 6], [1, 4, 7], [2, 5, 8],  // Columns
@@ -114,7 +129,7 @@ const checkWin = (board: Board) => {
     for (const pattern of winPatterns) {
         const [a, b, c] = pattern;
         if (board[a] && board[a] === board[b] && board[a] === board[c]) {
-            return board[a]; // Return the winner ("X" or "O")
+            return board[a] as "X" | "O"; // Return the winner ("X" or "O")
         }
     }
     return null; // No winner found

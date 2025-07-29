@@ -1,0 +1,110 @@
+.bgGrid {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: 
+        linear-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.1) 1px, transparent 1px);
+    background-size: 50px 50px;
+    z-index: -2;
+}
+
+.blurGrid {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+    z-index: -1;
+}
+
+.selectionContainer {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 2rem;
+    text-align: center;
+}
+
+.gameHeader {
+    margin-bottom: 3rem;
+}
+
+.gameIcon {
+    margin-bottom: 1rem;
+}
+
+.gameHeader h1 {
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+    color: #333;
+}
+
+.gameHeader p {
+    font-size: 1.2rem;
+    color: #666;
+    margin: 0;
+}
+
+.modeContainer {
+    display: flex;
+    gap: 2rem;
+    flex-wrap: wrap;
+    justify-content: center;
+    max-width: 600px;
+}
+
+.modeCard {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2rem;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    backdrop-filter: blur(10px);
+    text-decoration: none;
+    color: inherit;
+    transition: all 0.3s ease;
+    min-width: 200px;
+}
+
+.modeCard:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.modeIcon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+
+.modeCard h3 {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+    color: #333;
+}
+
+.modeCard p {
+    font-size: 1rem;
+    color: #666;
+    margin: 0;
+    text-align: center;
+}
+
+@media (max-width: 768px) {
+    .modeContainer {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .modeCard {
+        min-width: 250px;
+    }
+} 
