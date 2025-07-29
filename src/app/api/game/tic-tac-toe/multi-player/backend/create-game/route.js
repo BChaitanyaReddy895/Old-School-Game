@@ -15,6 +15,7 @@ export async function POST() {
       winner: null,
       tie: false,
       createdAt: Date.now(),
+      playAgainRequests: [],
     };
     return Response.json({ success: true, gameNumber, playerId });
   } catch (error) {
