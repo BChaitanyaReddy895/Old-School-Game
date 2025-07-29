@@ -19,21 +19,20 @@ const TicTacToeSelection = () => {
                         <Image src={TicTacToeImage} alt="Tic Tac Toe" width={80} height={70} />
                     </div>
                     <h1>Tic Tac Toe</h1>
-                    <p>Choose your game mode</p>
+                    <h2 className={styles.modeHeading}>Choose your game mode</h2>
                 </div>
 
                 <div className={styles.modeContainer}>
-                                    <Link href="/game/tic-tac-toe/single-player" className={styles.modeCard} aria-label="Play Tic Tac Toe vs AI">
-                    <div className={styles.modeIcon}>🤖</div>
-                    <h3>Play vs AI</h3>
-                    <p>Challenge our intelligent AI opponent</p>
-                </Link>
-                
-                <Link href="/multiplayer/tic-tac-toe" className={styles.modeCard} aria-label="Play Tic Tac Toe Multiplayer">
-                    <div className={styles.modeIcon}>👥</div>
-                    <h3>Multiplayer</h3>
-                    <p>Play with friends online</p>
-                </Link>
+                    <Link href="/game/tic-tac-toe/single-player" className={styles.modeCard} aria-label="Play Tic Tac Toe vs AI" role="button" tabIndex={0}>
+                        <div className={styles.modeIcon}>🤖</div>
+                        <span className={styles.modeLabel}>Play vs AI</span>
+                        <p>Challenge our intelligent AI opponent</p>
+                    </Link>
+                    <Link href="/game/tic-tac-toe/multi-player" className={styles.modeCard} aria-label="Play Tic Tac Toe Multiplayer" role="button" tabIndex={0}>
+                        <div className={styles.modeIcon}>👥</div>
+                        <span className={styles.modeLabel}>Multiplayer</span>
+                        <p>Play with friends online</p>
+                    </Link>
                 </div>
             </div>
         </>

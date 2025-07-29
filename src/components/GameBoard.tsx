@@ -64,12 +64,12 @@ export default function GameBoard({ playerSymbol }: GameBoardProps) {
             // If the game is not yet won or drawn, let the computer make a move
             if (!checkWin(updatedBoard) && !isDraw(updatedBoard)) {
                 try {
-                    // Get the best move for the computer
-                    const computerMove = getBestMove(updatedBoard, computerSymbol);
+                // Get the best move for the computer
+                const computerMove = getBestMove(updatedBoard, computerSymbol);
                     const newBoard = [...updatedBoard];
                     newBoard[computerMove] = computerSymbol; // Update the board with the computer's move
                     setBoard(newBoard); // Update the board state
-                    setGameStatus("It's Your Turn"); // Update the game status
+                setGameStatus("It's Your Turn"); // Update the game status
                 } catch (error) {
                     // Handle AI errors gracefully
                     console.error('AI Error:', error);

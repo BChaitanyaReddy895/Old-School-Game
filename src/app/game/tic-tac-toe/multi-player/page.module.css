@@ -1,0 +1,220 @@
+/* Container and layout */
+.container {
+  max-width: 500px;
+  margin: 2rem auto;
+  padding: 2rem;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.07);
+}
+.heading {
+  font-size: 2rem;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 1rem;
+  color: #222;
+}
+.multiplayerLabel {
+  font-size: 1.1rem;
+  color: #22C55E;
+  font-weight: 600;
+}
+.statusBar {
+  text-align: center;
+  margin-bottom: 1.5rem;
+  color: #d97706;
+  font-size: 1.1rem;
+  min-height: 1.5em;
+}
+.lobby {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+.createBtn, .joinBtn {
+  background: #22C55E;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 0.7rem 1.5rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.createBtn:disabled, .joinBtn:disabled {
+  background: #b6e7c9;
+  color: #666;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+.or {
+  color: #888;
+  font-size: 1rem;
+  margin: 0.5rem 0;
+}
+.joinInput {
+  padding: 0.6rem 1rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  font-size: 1rem;
+  width: 180px;
+}
+.gameCodeBox {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.7rem;
+  background: #f0fdf4;
+  border: 1.5px solid #22C55E;
+  border-radius: 8px;
+  padding: 0.7rem 1.2rem;
+  margin: 1.5rem auto 1rem auto;
+  width: fit-content;
+}
+.gameCodeLabel {
+  font-weight: 600;
+  color: #222;
+}
+.gameCode {
+  font-family: monospace;
+  font-size: 1.1rem;
+  color: #22C55E;
+  background: #fff;
+  border-radius: 4px;
+  padding: 0.2rem 0.5rem;
+  margin: 0 0.3rem;
+}
+.copyBtn {
+  background: #22C55E;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  padding: 0.3rem 0.8rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.copyBtn:active {
+  background: #16a34a;
+}
+.copyStatus {
+  color: #22C55E;
+  font-weight: 600;
+  margin-left: 0.5rem;
+}
+.timers {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  margin-bottom: 1.2rem;
+}
+.timerBox {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.timerLabel {
+  font-size: 0.95rem;
+  color: #888;
+}
+.timerValue {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #d97706;
+}
+.board {
+  display: grid;
+  grid-template-columns: repeat(3, 60px);
+  grid-template-rows: repeat(3, 60px);
+  gap: 0.5rem;
+  justify-content: center;
+  margin: 1.5rem auto 1rem auto;
+}
+.cell {
+  width: 60px;
+  height: 60px;
+  font-size: 2rem;
+  font-weight: 700;
+  color: #222;
+  background: #f7f7f7;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s, border 0.2s;
+  outline: none;
+}
+.cell:focus, .cell:hover {
+  border: 2px solid #22C55E;
+  background: #e0ffe6;
+}
+.cell:disabled {
+  background: #e0e0e0;
+  color: #666;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+.infoBar {
+  text-align: center;
+  margin-top: 1rem;
+  min-height: 2em;
+}
+.winMsg {
+  color: #22C55E;
+  font-weight: 700;
+  font-size: 1.2rem;
+}
+.tieMsg {
+  color: #d97706;
+  font-weight: 700;
+  font-size: 1.2rem;
+}
+.turnMsg {
+  color: #222;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+.playAgainBtn {
+  background: #22C55E;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 0.7rem 2rem;
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin: 1.5rem auto 0 auto;
+  display: block;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(34,197,94,0.07);
+  transition: background 0.2s, box-shadow 0.2s;
+}
+.playAgainBtn:disabled {
+  background: #b6e7c9;
+  color: #666;
+  cursor: not-allowed;
+}
+.playAgainBtn:focus, .playAgainBtn:hover {
+  background: #16a34a;
+  box-shadow: 0 4px 16px rgba(34,197,94,0.12);
+  outline: 2px solid #16a34a;
+}
+@media (max-width: 600px) {
+  .container {
+    padding: 1rem;
+  }
+  .board {
+    grid-template-columns: repeat(3, 40px);
+    grid-template-rows: repeat(3, 40px);
+    gap: 0.3rem;
+  }
+  .cell {
+    width: 40px;
+    height: 40px;
+    font-size: 1.3rem;
+  }
+  .timers {
+    gap: 1rem;
+  }
+} 
