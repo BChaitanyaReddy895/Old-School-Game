@@ -35,6 +35,7 @@ export default function MultiplayerTicTacToe() {
   const [loading, setLoading] = useState(false);
   const [playAgainRequested, setPlayAgainRequested] = useState(false);
   const [waitingForOpponent, setWaitingForOpponent] = useState(false);
+  const [playAgainError, setPlayAgainError] = useState("");
 
   // Restore state setters for gameNumber, playerId, mySymbol, showGameCode, winner, tie, moveTimer, gameTimer, moveTimerActive, gameTimerActive
   const handleCreateGame = async () => {
@@ -116,7 +117,7 @@ export default function MultiplayerTicTacToe() {
       setWaitingForOpponent(false);
     }
     console.log('[fetchGameState] bothPlayersJoined:', data.players && data.players.length === 2);
-  }, [gameNumber]);
+  }, [gameNumber, tie, winner]);
 
   // Polling
   useEffect(() => {
@@ -189,24 +190,30 @@ export default function MultiplayerTicTacToe() {
   const handlePlayAgain = async () => {
     setPlayAgainRequested(true);
     setWaitingForOpponent(false);
-    const res = await fetch("/api/game/tic-tac-toe/multi-player/backend/reset", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ gameNumber, playerId })
-    });
-    const data = await res.json();
-    if (data.success && !data.waiting) {
-      // Both players agreed, reset local state
-      setWinner(null);
-      setTie(false);
-      setPlayAgainRequested(false);
-      setWaitingForOpponent(false);
-      setMoveTimer(MOVE_TIME_LIMIT);
-      setGameTimer(GAME_TIME_LIMIT);
-      setMoveTimerActive(true);
-      setGameTimerActive(true);
-    } else if (data.success && data.waiting) {
-      setWaitingForOpponent(true);
+    setPlayAgainError("");
+    try {
+      const res = await fetch("/api/game/tic-tac-toe/multi-player/backend/reset", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ gameNumber, playerId })
+      });
+      const data = await res.json();
+      if (data.success && !data.waiting) {
+        setWinner(null);
+        setTie(false);
+        setPlayAgainRequested(false);
+        setWaitingForOpponent(false);
+        setMoveTimer(MOVE_TIME_LIMIT);
+        setGameTimer(GAME_TIME_LIMIT);
+        setMoveTimerActive(true);
+        setGameTimerActive(true);
+      } else if (data.success && data.waiting) {
+        setWaitingForOpponent(true);
+      } else {
+        setPlayAgainError(data.message || "Unknown error");
+      }
+    } catch (err) {
+      setPlayAgainError("Network or server error. Please try again.");
     }
   };
 
@@ -286,7 +293,7 @@ export default function MultiplayerTicTacToe() {
             {!winner && !tie && (
               isXNext === (mySymbol === "X")
                 ? <span className={styles.turnMsg}>Your turn</span>
-                : <span className={styles.turnMsg}>Opponent's turn</span>
+                : <span className={styles.turnMsg}>Opponent&apos;s turn</span>
             )}
           </div>
           {(winner || tie) && !playAgainRequested && (
@@ -299,6 +306,7 @@ export default function MultiplayerTicTacToe() {
               Waiting for opponent to play again...
             </div>
           )}
+          {playAgainError && <p style={{ color: 'red' }}>{playAgainError}</p>}
         </>
       )}
 

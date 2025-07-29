@@ -3,8 +3,8 @@ import { games } from '../games.js';
 export async function GET(req) {
   try {
     const { searchParams } = new URL(req.url);
-    const gameNumber = searchParams.get('gameNumber');
-    if (!gameNumber || !Object.prototype.hasOwnProperty.call(games, gameNumber)) {
+    let gameNumber = searchParams.get('gameNumber');
+    if (!gameNumber || typeof gameNumber !== 'string' || !(gameNumber = gameNumber.trim()) || !Object.prototype.hasOwnProperty.call(games, gameNumber)) {
       return Response.json({ success: false, message: 'Game not found.' }, { status: 404 });
     }
     const game = games[gameNumber];
@@ -15,6 +15,7 @@ export async function GET(req) {
       tie: game.tie,
       players: game.players,
       active: !game.winner && !game.tie && game.players.length === 2,
+      playAgainRequests: game.playAgainRequests || [],
     });
   } catch (error) {
     console.error('Game State API Error:', error);

@@ -4,7 +4,7 @@ export async function POST() {
   try {
     let gameNumber;
     do {
-      gameNumber = Math.random().toString(36).substr(2, 7).toUpperCase();
+      gameNumber = 'GAME-' + Math.random().toString(36).substring(2, 9).toUpperCase();
     } while (Object.prototype.hasOwnProperty.call(games, gameNumber));
     const playerId = crypto.randomUUID();
     games[gameNumber] = {
