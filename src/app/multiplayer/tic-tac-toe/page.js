@@ -139,7 +139,7 @@ const Game = () => {
             const res = await fetch('/api/multiplayer/move', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ gameNumber: currentGame, index, symbol, playerId: myPlayerId })
+                body: JSON.stringify({ gameNumber: currentGame, index, symbol, playerId: playerId })
             });
             
             if (!res.ok) {

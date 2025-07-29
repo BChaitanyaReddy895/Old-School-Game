@@ -19,6 +19,7 @@ const geistMono = localFont({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://oldschoolgame.vercel.app'),
   title: "Old School Game",
   description: "Step back in time with Old School Game, where classic games meet modern-day brain training! Sharpen your mind and have fun with nostalgic games, all designed to boost your cognitive power and keep your brain in top shape.l",
   openGraph:{
