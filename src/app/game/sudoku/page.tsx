@@ -5,8 +5,6 @@ import styles from "./page.module.css";
 import { generateFullSudoku, removeNumbers } from "@/app/game/sudoku/Sudoku";
 
 export default function Home() {
-
-
     const [sudoku, setSudoku] = useState<number[][]>([]);
     const [initialSudoku, setInitialSudoku] = useState<number[][]>([]);
     const [selectedCell, setSelectedCell] = useState<[number, number] | null>(null);

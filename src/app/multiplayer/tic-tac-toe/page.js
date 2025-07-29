@@ -56,7 +56,7 @@ const Game = () => {
 
     // Polling effect with proper dependencies
     const pollGameState = useCallback(async () => {
-        if (!currentGame || !gameStarted || !playerId) {
+        if (!currentGame || !gameStarted || !playerId || !gameActive) {
             return;
         }
         
@@ -67,23 +67,27 @@ const Game = () => {
             }
             const data = await res.json();
             
-            setBoard(data.board);
-            setIsXNext(data.isXNext);
-            setHasStarted(data.hasStarted);
-            setMySymbol(data.symbol || mySymbol);
-            setGameActive(!data.winner && !data.tie);
+            if (isMountedRef.current) {
+                setBoard(data.board);
+                setIsXNext(data.isXNext);
+                setHasStarted(data.hasStarted);
+                setMySymbol(data.symbol || mySymbol);
+                setGameActive(!data.winner && !data.tie);
+            }
             
 
         } catch (err) {
-            setStatus('Polling error: ' + err.message);
-            // Resume polling after error
-            setGameActive(true);
+            if (isMountedRef.current) {
+                setStatus('Polling error: ' + err.message);
+                // Resume polling after error
+                setGameActive(true);
+            }
         }
-    }, [currentGame, gameStarted, playerId, mySymbol]);
+    }, [currentGame, gameStarted, playerId, mySymbol, gameActive]);
 
     // Start/stop polling based on game state
     useEffect(() => {
-        if (!currentGame || !gameStarted || !playerId) {
+        if (!currentGame || !gameStarted || !playerId || !gameActive) {
             if (pollingRef.current) {
                 clearInterval(pollingRef.current);
                 pollingRef.current = null;
@@ -101,7 +105,7 @@ const Game = () => {
                 pollingRef.current = null;
             }
         };
-    }, [currentGame, gameStarted, playerId, pollGameState]);
+    }, [currentGame, gameStarted, playerId, gameActive, pollGameState]);
 
     const handleClick = async (index) => {
         if (!currentGame) {

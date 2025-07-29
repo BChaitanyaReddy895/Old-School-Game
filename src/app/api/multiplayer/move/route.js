@@ -6,8 +6,24 @@ export async function POST(req) {
     const body = await req.json();
     const { gameNumber, index, symbol, playerId } = body;
     
-    // Input validation
-    if (!gameNumber || gameNumber === '' || !Object.prototype.hasOwnProperty.call(games, gameNumber)) {
+    // Input validation for gameNumber
+    if (!gameNumber || gameNumber === '') {
+      return new Response(JSON.stringify({ error: 'Invalid game number: missing or empty' }), { 
+        status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+    
+    // Validate gameNumber format
+    if (typeof gameNumber !== 'string' || gameNumber.length > 50) {
+      return new Response(JSON.stringify({ error: 'Invalid game number format' }), { 
+        status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+    
+    // Check if game exists
+    if (!Object.prototype.hasOwnProperty.call(games, gameNumber)) {
       return new Response(JSON.stringify({ error: 'Game not found' }), { 
         status: 404,
         headers: { 'Content-Type': 'application/json' }
@@ -16,9 +32,25 @@ export async function POST(req) {
     
     const game = games[gameNumber];
     
-    // Security check: Verify player is part of the game
-    if (!playerId || !game.players || !game.players.some(p => p.id === playerId)) {
+    // Security check: Verify player is part of the game and symbol matches
+    if (!playerId || !game.players) {
       return new Response(JSON.stringify({ error: 'Unauthorized: Player not part of this game' }), { 
+        status: 403,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+    
+    const player = game.players.find(p => p.id === playerId);
+    if (!player) {
+      return new Response(JSON.stringify({ error: 'Unauthorized: Player not part of this game' }), { 
+        status: 403,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+    
+    // Verify symbol matches the player's assigned symbol
+    if (symbol !== player.symbol) {
+      return new Response(JSON.stringify({ error: 'Unauthorized: Symbol does not match player assignment' }), { 
         status: 403,
         headers: { 'Content-Type': 'application/json' }
       });
@@ -87,6 +119,7 @@ export async function POST(req) {
       headers: { 'Content-Type': 'application/json' }
     });
   } catch (error) {
+    console.error('Move API Error:', error);
     return new Response(JSON.stringify({ error: 'Failed to make move' }), { 
       status: 500,
       headers: { 'Content-Type': 'application/json' }

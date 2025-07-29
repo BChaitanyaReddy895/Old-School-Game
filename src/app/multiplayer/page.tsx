@@ -9,8 +9,8 @@ import TicTacToeImage from "/public/tic-tac-toe.svg";
 const MultiplayerSelection = () => {
     return (
         <>
-            <div id={styles.bgGrid}>
-                <div id={styles.blurGrid}></div>
+            <div className={styles.bgGrid}>
+                <div className={styles.blurGrid}></div>
             </div>
             
             <div className={styles.selectionContainer}>
@@ -23,11 +23,11 @@ const MultiplayerSelection = () => {
                 </div>
 
                 <div className={styles.modeContainer}>
-                    <Link href="/multiplayer/tic-tac-toe" className={styles.modeCard}>
-                        <div className={styles.modeIcon}>👥</div>
-                        <h3>Tic Tac Toe</h3>
-                        <p>Play with friends online</p>
-                    </Link>
+                                                <Link href="/multiplayer/tic-tac-toe" className={styles.modeCard} aria-label="Play Tic Tac Toe Multiplayer">
+                                <div className={styles.modeIcon}>👥</div>
+                                <h3>Tic Tac Toe</h3>
+                                <p>Play with friends online</p>
+                            </Link>
                 </div>
             </div>
         </>

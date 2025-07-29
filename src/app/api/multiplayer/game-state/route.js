@@ -11,8 +11,24 @@ export async function GET(req) {
     const gameNumber = searchParams.get('gameNumber');
     const playerId = searchParams.get('playerId');
     
+    // Input validation for gameNumber
+    if (!gameNumber || gameNumber === '') {
+      return new Response(JSON.stringify({ error: 'Invalid game number: missing or empty' }), { 
+        status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+    
+    // Validate gameNumber format (should be a string, not too long)
+    if (typeof gameNumber !== 'string' || gameNumber.length > 50) {
+      return new Response(JSON.stringify({ error: 'Invalid game number format' }), { 
+        status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+    
     // Proper validation - check if gameNumber exists and is valid
-    if (!gameNumber || gameNumber === '' || !Object.prototype.hasOwnProperty.call(games, gameNumber)) {
+    if (!Object.prototype.hasOwnProperty.call(games, gameNumber)) {
       return new Response(JSON.stringify({ error: 'Game not found' }), { 
         status: 404,
         headers: { 'Content-Type': 'application/json' }
@@ -37,6 +53,7 @@ export async function GET(req) {
       headers: { 'Content-Type': 'application/json' }
     });
   } catch (error) {
+    console.error('Game State API Error:', error);
     return new Response(JSON.stringify({ error: 'Internal server error' }), { 
       status: 500,
       headers: { 'Content-Type': 'application/json' }

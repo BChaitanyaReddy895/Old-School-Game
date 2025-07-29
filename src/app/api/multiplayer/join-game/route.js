@@ -31,6 +31,7 @@ export async function POST(req) {
     
     if (!game.players) game.players = [];
     
+    // Atomic check and update to prevent race conditions
     if (game.players.length >= 2) {
       return new Response(JSON.stringify({ error: 'Game is already full' }), { 
         status: 400,
@@ -39,10 +40,20 @@ export async function POST(req) {
     }
     
     const playerId = generatePlayerId();
-    game.players.push({ id: playerId, symbol: 'O' });
+    const newPlayer = { id: playerId, symbol: 'O' };
     
-    if (game.players.length === 2) {
-      game.hasStarted = true;
+    // Atomic operation: check length again and add player
+    if (game.players.length < 2) {
+      game.players.push(newPlayer);
+      
+      if (game.players.length === 2) {
+        game.hasStarted = true;
+      }
+    } else {
+      return new Response(JSON.stringify({ error: 'Game is already full' }), { 
+        status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      });
     }
     
     return new Response(JSON.stringify({ 
@@ -61,6 +72,7 @@ export async function POST(req) {
       headers: { 'Content-Type': 'application/json' }
     });
   } catch (error) {
+    console.error('Join Game API Error:', error);
     return new Response(JSON.stringify({ error: 'Failed to join game' }), { 
       status: 500,
       headers: { 'Content-Type': 'application/json' }

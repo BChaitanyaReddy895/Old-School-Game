@@ -60,14 +60,15 @@ export default function GameBoard({ playerSymbol }: GameBoardProps) {
         setCurrentTurn(computerSymbol);
 
         // Use a timeout to simulate the computer's thinking time
-        setTimeout(() => {
+        const timeoutId = setTimeout(() => {
             // If the game is not yet won or drawn, let the computer make a move
             if (!checkWin(updatedBoard) && !isDraw(updatedBoard)) {
                 try {
                     // Get the best move for the computer
                     const computerMove = getBestMove(updatedBoard, computerSymbol);
-                    updatedBoard[computerMove] = computerSymbol; // Update the board with the computer's move
-                    setBoard(updatedBoard); // Update the board state
+                    const newBoard = [...updatedBoard];
+                    newBoard[computerMove] = computerSymbol; // Update the board with the computer's move
+                    setBoard(newBoard); // Update the board state
                     setGameStatus("It's Your Turn"); // Update the game status
                 } catch (error) {
                     // Handle AI errors gracefully
@@ -81,8 +82,9 @@ export default function GameBoard({ playerSymbol }: GameBoardProps) {
                     
                     if (availableMoves.length > 0) {
                         const fallbackMove = availableMoves[Math.floor(Math.random() * availableMoves.length)];
-                        updatedBoard[fallbackMove] = computerSymbol;
-                        setBoard(updatedBoard);
+                        const newBoard = [...updatedBoard];
+                        newBoard[fallbackMove] = computerSymbol;
+                        setBoard(newBoard);
                         setGameStatus("It's Your Turn (Fallback move)");
                     }
                 }
@@ -91,6 +93,9 @@ export default function GameBoard({ playerSymbol }: GameBoardProps) {
             setCurrentTurn(playerSymbol);
             setIsComputerThinking(false);
         }, 1000); // 1-second delay for the computer's move
+        
+        // Cleanup timeout on component unmount
+        return () => clearTimeout(timeoutId);
     };
 
     // Function to reset the game

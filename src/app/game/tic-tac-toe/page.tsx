@@ -9,8 +9,8 @@ import TicTacToeImage from "/public/tic-tac-toe.svg";
 const TicTacToeSelection = () => {
     return (
         <>
-            <div id={styles.bgGrid}>
-                <div id={styles.blurGrid}></div>
+            <div className={styles.bgGrid}>
+                <div className={styles.blurGrid}></div>
             </div>
             
             <div className={styles.selectionContainer}>
@@ -23,17 +23,17 @@ const TicTacToeSelection = () => {
                 </div>
 
                 <div className={styles.modeContainer}>
-                    <Link href="/game/tic-tac-toe/single-player" className={styles.modeCard}>
-                        <div className={styles.modeIcon}>🤖</div>
-                        <h3>Play vs AI</h3>
-                        <p>Challenge our intelligent AI opponent</p>
-                    </Link>
-                    
-                    <Link href="/multiplayer/tic-tac-toe" className={styles.modeCard}>
-                        <div className={styles.modeIcon}>👥</div>
-                        <h3>Multiplayer</h3>
-                        <p>Play with friends online</p>
-                    </Link>
+                                    <Link href="/game/tic-tac-toe/single-player" className={styles.modeCard} aria-label="Play Tic Tac Toe vs AI">
+                    <div className={styles.modeIcon}>🤖</div>
+                    <h3>Play vs AI</h3>
+                    <p>Challenge our intelligent AI opponent</p>
+                </Link>
+                
+                <Link href="/multiplayer/tic-tac-toe" className={styles.modeCard} aria-label="Play Tic Tac Toe Multiplayer">
+                    <div className={styles.modeIcon}>👥</div>
+                    <h3>Multiplayer</h3>
+                    <p>Play with friends online</p>
+                </Link>
                 </div>
             </div>
         </>

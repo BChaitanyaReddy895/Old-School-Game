@@ -50,22 +50,38 @@ export const getEmptyIndices = (board) => {
  * @param {number} maxAge - Maximum age in milliseconds (default: 1 hour)
  */
 export const cleanupGames = (games, maxAge = 60 * 60 * 1000) => {
-    const now = Date.now();
-    const gameNumbers = Object.keys(games);
+  const now = Date.now();
+  const gameNumbers = Object.keys(games);
+  const gamesToDelete = [];
+  
+  gameNumbers.forEach(gameNumber => {
+    const game = games[gameNumber];
     
-    gameNumbers.forEach(gameNumber => {
-        const game = games[gameNumber];
-        
-        // Remove games that are finished and older than maxAge
-        if (game.winner || game.tie) {
-            if (now - game.createdAt > maxAge) {
-                delete games[gameNumber];
-            }
-        }
-        
-        // Remove games that haven't started and are older than 30 minutes
-        if (!game.hasStarted && now - game.createdAt > 30 * 60 * 1000) {
-            delete games[gameNumber];
-        }
-    });
+    // Skip games that don't exist or lack required properties
+    if (!game || typeof game !== 'object') {
+      return;
+    }
+    
+    // Ensure createdAt exists before using it
+    if (!game.createdAt || typeof game.createdAt !== 'number') {
+      return;
+    }
+    
+    // Remove games that are finished and older than maxAge
+    if (game.winner || game.tie) {
+      if (now - game.createdAt > maxAge) {
+        gamesToDelete.push(gameNumber);
+      }
+    }
+    
+    // Remove games that haven't started and are older than 30 minutes
+    if (!game.hasStarted && now - game.createdAt > 30 * 60 * 1000) {
+      gamesToDelete.push(gameNumber);
+    }
+  });
+  
+  // Delete games after iteration to avoid mutation during iteration
+  gamesToDelete.forEach(gameNumber => {
+    delete games[gameNumber];
+  });
 }; 

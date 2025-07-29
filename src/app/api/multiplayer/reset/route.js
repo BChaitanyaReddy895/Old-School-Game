@@ -59,6 +59,7 @@ export async function POST(req) {
       });
     }
   } catch (error) {
+    console.error('Reset API Error:', error);
     return new Response(JSON.stringify({ error: 'Failed to reset game' }), { 
       status: 500,
       headers: { 'Content-Type': 'application/json' }

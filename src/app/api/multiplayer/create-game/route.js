@@ -41,6 +41,7 @@ export async function POST() {
       headers: { 'Content-Type': 'application/json' }
     });
   } catch (error) {
+    console.error('Create Game API Error:', error);
     return new Response(JSON.stringify({ error: 'Failed to create game' }), { 
       status: 500,
       headers: { 'Content-Type': 'application/json' }
