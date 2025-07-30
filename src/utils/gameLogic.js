@@ -4,6 +4,20 @@
  * @returns {string|null} - The winning symbol ('X' or 'O') or null if no winner
  */
 export const calculateWinner = (board) => {
+    // Input validation
+    if (!Array.isArray(board) || board.length !== 9) {
+        console.error('Invalid board: must be an array of length 9');
+        return null;
+    }
+    
+    // Validate board contents
+    for (let i = 0; i < board.length; i++) {
+        if (board[i] !== null && board[i] !== 'X' && board[i] !== 'O' && board[i] !== '') {
+            console.error('Invalid board: contains invalid values');
+            return null;
+        }
+    }
+    
     const lines = [
         [0, 1, 2],
         [3, 4, 5],

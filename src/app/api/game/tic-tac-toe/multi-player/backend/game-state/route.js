@@ -7,7 +7,25 @@ export async function GET(req) {
   try {
     const { searchParams } = new URL(req.url);
     let gameNumber = searchParams.get('gameNumber');
-    if (!gameNumber || typeof gameNumber !== 'string' || !(gameNumber = gameNumber.trim()) || !Object.prototype.hasOwnProperty.call(games, gameNumber)) {
+    
+    // Validate gameNumber presence
+    if (!gameNumber) {
+      return Response.json({ success: false, message: 'Game number is required.' }, { status: 400 });
+    }
+    
+    // Validate gameNumber type
+    if (typeof gameNumber !== 'string') {
+      return Response.json({ success: false, message: 'Game number must be a string.' }, { status: 400 });
+    }
+    
+    // Trim and validate gameNumber is not empty after trimming
+    gameNumber = gameNumber.trim();
+    if (!gameNumber) {
+      return Response.json({ success: false, message: 'Game number cannot be empty.' }, { status: 400 });
+    }
+    
+    // Check if game exists
+    if (!Object.prototype.hasOwnProperty.call(games, gameNumber)) {
       return Response.json({ success: false, message: 'Game not found.' }, { status: 404 });
     }
     const game = games[gameNumber];

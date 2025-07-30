@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { getBestMove } from "./HardMinimax"; // Import the getBestMove function from the HardMinimax module to get the best move for the AI
 import styles from "./gameBoard.module.css";
 import Link from "next/link";
@@ -15,6 +15,16 @@ export default function GameBoard({ playerSymbol }: GameBoardProps) {
     const [gameStatus, setGameStatus] = useState<string>("Start playing your game"); // State to display the game status (e.g., instructions or result)
     const [isComputerThinking, setIsComputerThinking] = useState<boolean>(false); // State to show when computer is thinking
     const computerSymbol = playerSymbol === "X" ? "O" : "X"; // Determine the computer's symbol based on the player's symbol
+    const timeoutRef = useRef<NodeJS.Timeout | null>(null); // Ref to store timeout ID for cleanup
+
+    // Cleanup timeout on component unmount
+    useEffect(() => {
+        return () => {
+            if (timeoutRef.current) {
+                clearTimeout(timeoutRef.current);
+            }
+        };
+    }, []);
 
     // Function to check if there is a winner on the board
     const checkWin = (board: (null | "X" | "O")[]) => {
@@ -60,7 +70,7 @@ export default function GameBoard({ playerSymbol }: GameBoardProps) {
         setCurrentTurn(computerSymbol);
 
         // Use a timeout to simulate the computer's thinking time
-        const timeoutId = setTimeout(() => {
+        timeoutRef.current = setTimeout(() => {
             // If the game is not yet won or drawn, let the computer make a move
             if (!checkWin(updatedBoard) && !isDraw(updatedBoard)) {
                 try {
@@ -73,7 +83,7 @@ export default function GameBoard({ playerSymbol }: GameBoardProps) {
                 } catch (error) {
                     // Handle AI errors gracefully
                     console.error('AI Error:', error);
-                    setGameStatus("Computer encountered an error. Please try again.");
+                    setGameStatus("Computer is having a little trouble, making a simpler move instead.");
                     
                     // Find any available move as fallback
                     const availableMoves = updatedBoard
@@ -93,9 +103,6 @@ export default function GameBoard({ playerSymbol }: GameBoardProps) {
             setCurrentTurn(playerSymbol);
             setIsComputerThinking(false);
         }, 1000); // 1-second delay for the computer's move
-        
-        // Cleanup timeout on component unmount
-        return () => clearTimeout(timeoutId);
     };
 
     // Function to reset the game
