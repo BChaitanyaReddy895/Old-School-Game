@@ -37,86 +37,104 @@ export default function MultiplayerTicTacToe() {
   const [waitingForOpponent, setWaitingForOpponent] = useState(false);
   const [playAgainError, setPlayAgainError] = useState("");
 
-  // Restore state setters for gameNumber, playerId, mySymbol, showGameCode, winner, tie, moveTimer, gameTimer, moveTimerActive, gameTimerActive
   const handleCreateGame = async () => {
     setLoading(true);
-    const res = await fetch("/api/game/tic-tac-toe/multi-player/backend/create-game", { method: "POST" });
-    const data = await res.json();
-    console.log('[handleCreateGame] response:', data);
-    if (data.success) {
-      setGameNumber(data.gameNumber);
-      setPlayerId(data.playerId);
-      setMySymbol("X");
-      setShowGameCode(true);
-      setWinner(null);
-      setTie(false);
-      setMoveTimer(MOVE_TIME_LIMIT);
-      setGameTimer(GAME_TIME_LIMIT);
-      setMoveTimerActive(false);
-      setGameTimerActive(false);
-      console.log('[handleCreateGame] state set: gameNumber', data.gameNumber, 'playerId', data.playerId);
-      setTimeout(fetchGameState, 100); // Fetch after state update
+    try {
+      const res = await fetch("/api/game/tic-tac-toe/multi-player/backend/create-game", { method: "POST" });
+      if (!res.ok) {
+        throw new Error(`Server responded with ${res.status}`);
+      }
+      const data = await res.json();
+      if (data.success) {
+        setGameNumber(data.gameNumber);
+        setPlayerId(data.playerId);
+        setMySymbol("X");
+        setShowGameCode(true);
+        setWinner(null);
+        setTie(false);
+        setMoveTimer(MOVE_TIME_LIMIT);
+        setGameTimer(GAME_TIME_LIMIT);
+        setMoveTimerActive(false);
+        setGameTimerActive(false);
+        setTimeout(fetchGameState, 100);
+      } else {
+        alert(data.message || "Failed to create game. Please try again.");
+      }
+    } catch (error) {
+      alert("Unable to create game. Please check your connection and try again.");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
-  // Restore handleJoinGame
   const handleJoinGame = async () => {
     setLoading(true);
-    const res = await fetch("/api/game/tic-tac-toe/multi-player/backend/join-game", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ gameNumber: joinCode })
-    });
-    const data = await res.json();
-    console.log('[handleJoinGame] response:', data);
-    if (data.success) {
-      setGameNumber(joinCode);
-      setPlayerId(data.playerId);
-      setMySymbol("O");
-      setShowGameCode(false);
-      setWinner(null);
-      setTie(false);
-      setMoveTimer(MOVE_TIME_LIMIT);
-      setGameTimer(GAME_TIME_LIMIT);
-      setMoveTimerActive(true);
-      setGameTimerActive(true);
-      console.log('[handleJoinGame] state set: gameNumber', joinCode, 'playerId', data.playerId);
-      setTimeout(fetchGameState, 100); // Fetch after state update
+    try {
+      const res = await fetch("/api/game/tic-tac-toe/multi-player/backend/join-game", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ gameNumber: joinCode })
+      });
+      if (!res.ok) {
+        throw new Error(`Server responded with ${res.status}`);
+      }
+      const data = await res.json();
+      if (data.success) {
+        setGameNumber(joinCode);
+        setPlayerId(data.playerId);
+        setMySymbol("O");
+        setShowGameCode(false);
+        setWinner(null);
+        setTie(false);
+        setMoveTimer(MOVE_TIME_LIMIT);
+        setGameTimer(GAME_TIME_LIMIT);
+        setMoveTimerActive(true);
+        setGameTimerActive(true);
+        setTimeout(fetchGameState, 100);
+      } else {
+        alert(data.message || "Failed to join game. Please check the game code.");
+      }
+    } catch (error) {
+      alert("Unable to join game. Please check your connection and try again.");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   // Fetch game state
   const fetchGameState = useCallback(async () => {
     if (!gameNumber) return;
-    const res = await fetch(`/api/game/tic-tac-toe/multi-player/backend/game-state?gameNumber=${gameNumber}`);
-                const data = await res.json();
-                console.log('[fetchGameState] data:', data);
-                console.log('[fetchGameState] players array:', data.players);
-                setBoard(data.board);
-                setIsXNext(data.isXNext);
-    setWinner(data.winner);
-    setTie(data.tie);
-    setGameActive(data.active);
-    console.log('Players array:', data.players); // Debug: see what the backend returns
-    setBothPlayersJoined(data.players && data.players.length === 2);
-    if (data.players && data.players.length === 2) {
-      setShowGameCode(false);
-      setMoveTimerActive(true);
-      setGameTimerActive(true);
+    try {
+      const res = await fetch(`/api/game/tic-tac-toe/multi-player/backend/game-state?gameNumber=${gameNumber}`);
+      if (!res.ok) {
+        console.error(`Failed to fetch game state: ${res.status}`);
+        return;
+      }
+      const data = await res.json();
+      setBoard(data.board);
+      setIsXNext(data.isXNext);
+      setWinner(data.winner);
+      setTie(data.tie);
+      setGameActive(data.active);
+      setBothPlayersJoined(data.players && data.players.length === 2);
+      if (data.players && data.players.length === 2) {
+        setShowGameCode(false);
+        setMoveTimerActive(true);
+        setGameTimerActive(true);
+      }
+      if (data.winner || data.tie) {
+        setMoveTimerActive(false);
+        setGameTimerActive(false);
+      }
+      // Show waiting message to both if only one has requested
+      if (data.playAgainRequests && data.playAgainRequests.length === 1 && (winner || tie)) {
+        setWaitingForOpponent(true);
+      } else {
+        setWaitingForOpponent(false);
+      }
+    } catch (error) {
+      console.error('Error fetching game state:', error);
     }
-    if (data.winner || data.tie) {
-      setMoveTimerActive(false);
-      setGameTimerActive(false);
-    }
-    // Show waiting message to both if only one has requested
-    if (data.playAgainRequests && data.playAgainRequests.length === 1 && (winner || tie)) {
-      setWaitingForOpponent(true);
-    } else {
-      setWaitingForOpponent(false);
-    }
-    console.log('[fetchGameState] bothPlayersJoined:', data.players && data.players.length === 2);
   }, [gameNumber, tie, winner]);
 
   // Polling
@@ -129,17 +147,22 @@ export default function MultiplayerTicTacToe() {
     return () => clearInterval(interval);
   }, [gameNumber, fetchGameState]);
 
-  // Move timer
+    // Move timer
   useEffect(() => {
     if (!moveTimerActive) return;
     if (moveTimer <= 0) {
       setMoveTimerActive(false);
-      // Optionally: auto-forfeit or skip turn logic here
-            return;
-        }
+      // Auto-skip turn when timer expires
+      if (gameActive && !winner && !tie) {
+        alert("Time's up! Your turn was skipped.");
+        // Reset timer for next turn
+        setMoveTimer(MOVE_TIME_LIMIT);
+      }
+      return;
+    }
     moveTimerRef.current = setTimeout(() => setMoveTimer((t) => t - 1), 1000);
     return () => clearTimeout(moveTimerRef.current);
-  }, [moveTimer, moveTimerActive]);
+  }, [moveTimer, moveTimerActive, gameActive, winner, tie]);
 
   // Game timer
   useEffect(() => {
@@ -179,9 +202,9 @@ export default function MultiplayerTicTacToe() {
         setWinner(data.winner);
         setTie(data.tie);
         setMoveTimer(MOVE_TIME_LIMIT);
-      } else {
-        setStatus(data.message || "Invalid move.");
-      }
+          } else {
+      alert(data.message || "Invalid move. Please try again.");
+    }
         } finally {
             setLoading(false);
         }
@@ -225,7 +248,7 @@ export default function MultiplayerTicTacToe() {
       {/* LOBBY: Only show if no game is active */}
       {!gameNumber && (
         <div className={styles.lobby}>
-          <button className={styles.createBtn} onClick={handleCreateGame} disabled={loading}>Create Game</button>
+          <button type="button" className={styles.createBtn} onClick={handleCreateGame} disabled={loading}>Create Game</button>
           <div className={styles.or}>or</div>
           <input
             className={styles.joinInput}
@@ -235,7 +258,7 @@ export default function MultiplayerTicTacToe() {
             onChange={e => setJoinCode(e.target.value)}
             aria-label="Enter game code to join"
           />
-          <button className={styles.joinBtn} onClick={handleJoinGame} disabled={loading || !joinCode}>Join Game</button>
+          <button type="button" className={styles.joinBtn} onClick={handleJoinGame} disabled={loading || !joinCode}>Join Game</button>
         </div>
       )}
 
@@ -243,7 +266,7 @@ export default function MultiplayerTicTacToe() {
         <div className={styles.gameCodeBox}>
           <span className={styles.gameCodeLabel}>Game Code:</span>
           <span className={styles.gameCode}>{gameNumber}</span>
-          <button className={styles.copyBtn} onClick={handleCopy} aria-label="Copy game code">Copy</button>
+          <button type="button" className={styles.copyBtn} onClick={handleCopy} aria-label="Copy game code">Copy</button>
           {copyStatus && <span className={styles.copyStatus}>{copyStatus}</span>}
         </div>
       )}
@@ -256,7 +279,7 @@ export default function MultiplayerTicTacToe() {
 
       {/* WAITING: Show if game started but both players not joined */}
       {gameNumber && !bothPlayersJoined && (
-        <div className={styles.statusBar} role="status" aria-live="polite">Waiting for opponent to join...</div>
+        <output className={styles.statusBar} role="status" aria-live="polite">Waiting for opponent to join...</output>
       )}
 
       {/* GAME: Show if both players joined */}
@@ -297,7 +320,7 @@ export default function MultiplayerTicTacToe() {
             )}
           </div>
           {(winner || tie) && !playAgainRequested && (
-            <button className={styles.playAgainBtn} onClick={handlePlayAgain} disabled={loading}>
+            <button type="button" className={styles.playAgainBtn} onClick={handlePlayAgain} disabled={loading}>
               Play Again
             </button>
           )}
