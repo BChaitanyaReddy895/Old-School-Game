@@ -22,17 +22,25 @@ function calculateWinner(board) {
 export async function POST(req) {
   try {
     const { gameNumber, index, symbol, playerId } = await req.json();
+    
+    // Convert index to number if it's a string
+    const numericIndex = typeof index === 'string' ? parseInt(index, 10) : index;
+    
     if (
       !gameNumber ||
-      typeof index !== 'number' ||
+      typeof numericIndex !== 'number' ||
+      isNaN(numericIndex) ||
+      numericIndex < 0 ||
+      numericIndex > 8 ||
       !['X', 'O'].includes(symbol) ||
       !playerId ||
       !Object.prototype.hasOwnProperty.call(games, gameNumber)
     ) {
+      console.error('Move validation failed:', { gameNumber, index, numericIndex, symbol, playerId, hasGame: Object.prototype.hasOwnProperty.call(games, gameNumber) });
       return Response.json({ success: false, message: 'Invalid move parameters.' }, { status: 400 });
     }
     const game = games[gameNumber];
-    if (game.board[index] || game.winner || game.tie) {
+    if (game.board[numericIndex] || game.winner || game.tie) {
       return Response.json({ success: false, message: 'Invalid move.' }, { status: 400 });
     }
     // Check player
@@ -44,7 +52,7 @@ export async function POST(req) {
     if ((game.isXNext && symbol !== 'X') || (!game.isXNext && symbol !== 'O')) {
       return Response.json({ success: false, message: 'Not your turn.' }, { status: 400 });
     }
-    game.board[index] = symbol;
+    game.board[numericIndex] = symbol;
     game.isXNext = !game.isXNext;
     const winner = calculateWinner(game.board);
     if (winner) {

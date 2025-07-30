@@ -12,11 +12,15 @@ Whether you're reliving childhood nostalgia or seeking a mental workout, these g
 
 ## 🎮 Games Included
 
-1. **Tic Tac Toe**
-   *Test your logic and strategy in this classic game of Xs and Os. Great for improving decision-making skills.*
+### **Tic Tac Toe** 🎯
+*Test your logic and strategy in this classic game of Xs and Os. Available in both **Single Player (vs AI)** and **Multiplayer** modes.*
 
-2. **Sudoku**
-   *Challenge your number sense and memory with this popular puzzle. Perfect for enhancing focus and pattern recognition.*
+**🧠 Brain Benefits:** Tic Tac Toe enhances **spatial reasoning**, **pattern recognition**, and **strategic thinking**. It exercises the brain's ability to anticipate opponent moves, plan multiple steps ahead, and develop logical reasoning skills. The game stimulates the prefrontal cortex, improving executive functions like planning, decision-making, and impulse control. Regular play can strengthen neural pathways associated with problem-solving and enhance cognitive flexibility.
+
+**🎮 Multiplayer Mode:** The multiplayer version adds **social cognition** benefits, requiring players to read opponent strategies, adapt to different playing styles, and develop **theory of mind** skills. This collaborative aspect enhances **emotional intelligence** and **social reasoning** while maintaining all the cognitive benefits of the classic game.
+
+### **Sudoku** 🧩
+*Challenge your number sense and memory with this popular puzzle. Perfect for enhancing focus and pattern recognition.*
 
 > ✅ More games coming soon that focus on logic, memory, attention, and problem-solving!
 

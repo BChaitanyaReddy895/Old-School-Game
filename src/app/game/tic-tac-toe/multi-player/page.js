@@ -36,6 +36,8 @@ export default function MultiplayerTicTacToe() {
   const [playAgainRequested, setPlayAgainRequested] = useState(false);
   const [waitingForOpponent, setWaitingForOpponent] = useState(false);
   const [playAgainError, setPlayAgainError] = useState("");
+  const [turnSkipped, setTurnSkipped] = useState(false);
+  const [turnSkippedMessage, setTurnSkippedMessage] = useState("");
 
   const handleCreateGame = async () => {
     setLoading(true);
@@ -56,6 +58,8 @@ export default function MultiplayerTicTacToe() {
         setGameTimer(GAME_TIME_LIMIT);
         setMoveTimerActive(false);
         setGameTimerActive(false);
+        setTurnSkipped(false);
+        setTurnSkippedMessage("");
         setTimeout(fetchGameState, 100);
       } else {
         alert(data.message || "Failed to create game. Please try again.");
@@ -90,6 +94,8 @@ export default function MultiplayerTicTacToe() {
         setGameTimer(GAME_TIME_LIMIT);
         setMoveTimerActive(true);
         setGameTimerActive(true);
+        setTurnSkipped(false);
+        setTurnSkippedMessage("");
         setTimeout(fetchGameState, 100);
       } else {
         alert(data.message || "Failed to join game. Please check the game code.");
@@ -154,9 +160,15 @@ export default function MultiplayerTicTacToe() {
       setMoveTimerActive(false);
       // Auto-skip turn when timer expires
       if (gameActive && !winner && !tie) {
-        alert("Time's up! Your turn was skipped.");
+        setTurnSkipped(true);
+        setTurnSkippedMessage("Time's up! Your turn was skipped.");
         // Reset timer for next turn
         setMoveTimer(MOVE_TIME_LIMIT);
+        // Clear the message after 3 seconds
+        setTimeout(() => {
+          setTurnSkipped(false);
+          setTurnSkippedMessage("");
+        }, 3000);
       }
       return;
     }
@@ -186,29 +198,47 @@ export default function MultiplayerTicTacToe() {
 
   // Handle move
   const handleClick = async (index) => {
-    if (!gameActive || board[index] || winner || tie) return;
+    if (!gameActive || board[index] || winner || tie || turnSkipped) return;
     if ((isXNext && mySymbol !== "X") || (!isXNext && mySymbol !== "O")) return;
-        setLoading(true);
-        try {
+    setLoading(true);
+    try {
+      const moveData = { gameNumber, index, symbol: mySymbol, playerId };
+      console.log('Sending move data:', moveData);
       const res = await fetch("/api/game/tic-tac-toe/multi-player/backend/move", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ gameNumber, index, symbol: mySymbol, playerId })
+        body: JSON.stringify(moveData)
       });
-            const data = await res.json();
+      const data = await res.json();
+      console.log('Move response:', data);
       if (data.success) {
         setBoard(data.board);
         setIsXNext(data.isXNext);
         setWinner(data.winner);
         setTie(data.tie);
         setMoveTimer(MOVE_TIME_LIMIT);
-          } else {
-      alert(data.message || "Invalid move. Please try again.");
+        setTurnSkipped(false); // Reset turn skipped state when move is successful
+      } else {
+        console.error('Move failed:', data.message);
+        setTurnSkippedMessage(data.message || "Invalid move. Please try again.");
+        setTurnSkipped(true);
+        setTimeout(() => {
+          setTurnSkipped(false);
+          setTurnSkippedMessage("");
+        }, 3000);
+      }
+    } catch (error) {
+      console.error('Network error during move:', error);
+      setTurnSkippedMessage("Network error. Please try again.");
+      setTurnSkipped(true);
+      setTimeout(() => {
+        setTurnSkipped(false);
+        setTurnSkippedMessage("");
+      }, 3000);
+    } finally {
+      setLoading(false);
     }
-        } finally {
-            setLoading(false);
-        }
-    };
+  };
 
   const handlePlayAgain = async () => {
     setPlayAgainRequested(true);
@@ -230,6 +260,8 @@ export default function MultiplayerTicTacToe() {
         setGameTimer(GAME_TIME_LIMIT);
         setMoveTimerActive(true);
         setGameTimerActive(true);
+        setTurnSkipped(false);
+        setTurnSkippedMessage("");
       } else if (data.success && data.waiting) {
         setWaitingForOpponent(true);
       } else {
@@ -301,7 +333,7 @@ export default function MultiplayerTicTacToe() {
                 key={idx}
                 className={styles.cell}
                 onClick={() => handleClick(idx)}
-                disabled={!!cell || !gameActive || winner || tie || (isXNext && mySymbol !== "X") || (!isXNext && mySymbol !== "O") || !bothPlayersJoined || loading}
+                disabled={!!cell || !gameActive || winner || tie || turnSkipped || (isXNext && mySymbol !== "X") || (!isXNext && mySymbol !== "O") || !bothPlayersJoined || loading}
                 aria-label={`Cell ${idx + 1} ${cell ? cell : "empty"}`}
                 role="gridcell"
                 type="button"
@@ -313,7 +345,8 @@ export default function MultiplayerTicTacToe() {
           <div className={styles.infoBar}>
             {winner && <span className={styles.winMsg}>{winner === mySymbol ? "You win!" : "You lose!"}</span>}
             {tie && <span className={styles.tieMsg}>It&apos;s a tie!</span>}
-            {!winner && !tie && (
+            {turnSkipped && <span className={styles.turnSkippedMsg}>{turnSkippedMessage}</span>}
+            {!winner && !tie && !turnSkipped && (
               isXNext === (mySymbol === "X")
                 ? <span className={styles.turnMsg}>Your turn</span>
                 : <span className={styles.turnMsg}>Opponent&apos;s turn</span>
